@@ -1,0 +1,7 @@
+__mocks__
+examples
+src
+.eslintrc
+babel.config.js
+yarn.lock
+*.log
