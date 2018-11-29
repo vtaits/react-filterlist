@@ -21,9 +21,24 @@ export const methodsForChild = [
   'updateItem',
 ];
 
+export function defaultShouldRecount(data1, data2) {
+  return data1 === data2;
+}
+
 class FilterlistWrapper extends Component {
   static propTypes = {
+    parseFiltersAndSort: PropTypes.func,
+    // eslint-disable-next-line react/forbid-prop-types
+    filtersAndSortData: PropTypes.any,
+    shouldRecount: PropTypes.func,
+
     children: PropTypes.func.isRequired,
+  }
+
+  static defaultProps = {
+    parseFiltersAndSort: null,
+    filtersAndSortData: null,
+    shouldRecount: defaultShouldRecount,
   }
 
   constructor(props) {
@@ -31,11 +46,58 @@ class FilterlistWrapper extends Component {
 
     this.syncListState = this.syncListState.bind(this);
 
-    const filterlist = new Filterlist(props);
+    this.initFilterlist();
+
+    this.state = {
+      listState: this.filterlist.getListState(),
+    };
+  }
+
+  componentDidUpdate(prevProps) {
+    const {
+      parseFiltersAndSort,
+      filtersAndSortData,
+      shouldRecount,
+    } = this.props;
+
+    if (
+      parseFiltersAndSort
+      && shouldRecount(filtersAndSortData, prevProps.filtersAndSortData)
+    ) {
+      const parsedFiltersAndSort = parseFiltersAndSort(filtersAndSortData);
+
+      this.filterlist.setFiltersAndSorting(parsedFiltersAndSort);
+    }
+  }
+
+  componentWillUnmount() {
+    this.filterlist.removeAllListeners(eventTypes.changeListState);
+  }
+
+  getFilterlistOptions() {
+    const {
+      parseFiltersAndSort,
+      filtersAndSortData,
+    } = this.props;
+
+    if (parseFiltersAndSort) {
+      const parsedFiltersAndSort = parseFiltersAndSort(filtersAndSortData);
+
+      return {
+        ...this.props,
+        ...parsedFiltersAndSort,
+      };
+    }
+
+    return this.props;
+  }
+
+  initFilterlist() {
+    const options = this.getFilterlistOptions();
+
+    const filterlist = new Filterlist(options);
 
     filterlist.addListener(eventTypes.changeListState, this.syncListState);
-
-    this.filterlist = filterlist;
 
     const listActions = methodsForChild.reduce((res, methodName) => {
       res[methodName] = filterlist[methodName].bind(filterlist);
@@ -44,13 +106,7 @@ class FilterlistWrapper extends Component {
 
     this.listActions = listActions;
 
-    this.state = {
-      listState: filterlist.getListState(),
-    };
-  }
-
-  componentWillUnmount() {
-    this.filterlist.removeAllListeners(eventTypes.changeListState);
+    this.filterlist = filterlist;
   }
 
   syncListState() {
