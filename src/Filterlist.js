@@ -31,6 +31,7 @@ class FilterlistWrapper extends Component {
     // eslint-disable-next-line react/forbid-prop-types
     filtersAndSortData: PropTypes.any,
     shouldRecount: PropTypes.func,
+    isRecountAsync: PropTypes.bool,
 
     children: PropTypes.func.isRequired,
   }
@@ -39,21 +40,36 @@ class FilterlistWrapper extends Component {
     parseFiltersAndSort: null,
     filtersAndSortData: null,
     shouldRecount: defaultShouldRecount,
+    isRecountAsync: false,
   }
 
   constructor(props) {
     super(props);
 
+    const {
+      parseFiltersAndSort,
+      isRecountAsync,
+    } = props;
+
     this.syncListState = this.syncListState.bind(this);
 
-    this.initFilterlist();
+    const shouldInitAsync = Boolean(parseFiltersAndSort) && isRecountAsync;
+
+    if (shouldInitAsync) {
+      this.initFilterlistAsync();
+    } else {
+      this.initFilterlist();
+    }
 
     this.state = {
-      listState: this.filterlist.getListState(),
+      isListInited: !shouldInitAsync,
+      listState: shouldInitAsync
+        ? null
+        : this.filterlist.getListState(),
     };
   }
 
-  componentDidUpdate(prevProps) {
+  async componentDidUpdate(prevProps) {
     const {
       parseFiltersAndSort,
       filtersAndSortData,
@@ -64,13 +80,14 @@ class FilterlistWrapper extends Component {
       parseFiltersAndSort
       && shouldRecount(filtersAndSortData, prevProps.filtersAndSortData)
     ) {
-      const parsedFiltersAndSort = parseFiltersAndSort(filtersAndSortData);
+      const parsedFiltersAndSort = await parseFiltersAndSort(filtersAndSortData);
 
       this.filterlist.setFiltersAndSorting(parsedFiltersAndSort);
     }
   }
 
   componentWillUnmount() {
+    this.unmounted = true;
     this.filterlist.removeAllListeners(eventTypes.changeListState);
   }
 
@@ -92,9 +109,42 @@ class FilterlistWrapper extends Component {
     return this.props;
   }
 
+  async getFilterlistOptionsAsync() {
+    const {
+      parseFiltersAndSort,
+      filtersAndSortData,
+    } = this.props;
+
+    const parsedFiltersAndSort = await parseFiltersAndSort(filtersAndSortData);
+
+    return {
+      ...this.props,
+      ...parsedFiltersAndSort,
+    };
+  }
+
   initFilterlist() {
     const options = this.getFilterlistOptions();
 
+    this.createFilterlist(options);
+  }
+
+  async initFilterlistAsync() {
+    const options = await this.getFilterlistOptionsAsync();
+
+    if (this.unmounted) {
+      return;
+    }
+
+    this.createFilterlist(options);
+
+    await this.setState({
+      isListInited: true,
+      listState: this.filterlist.getListState(),
+    });
+  }
+
+  createFilterlist(options) {
     const filterlist = new Filterlist(options);
 
     filterlist.addListener(eventTypes.changeListState, this.syncListState);
@@ -121,10 +171,12 @@ class FilterlistWrapper extends Component {
     } = this.props;
 
     const {
+      isListInited,
       listState,
     } = this.state;
 
     return children({
+      isListInited,
       listState,
       listActions: this.listActions,
     });

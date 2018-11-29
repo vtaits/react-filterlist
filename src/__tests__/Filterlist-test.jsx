@@ -3,6 +3,24 @@ import { shallow } from 'enzyme';
 
 import Filterlist, { methodsForChild } from '../Filterlist';
 
+class ManualFilterlist extends Filterlist {
+  constructor(props) {
+    super(props);
+
+    this.initFilterlistAsync = jest.fn();
+  }
+
+  manualInitFilterlistAsync(...args) {
+    return super.initFilterlistAsync(...args);
+  }
+
+  componentDidUpdate() {}
+
+  manualComponentDidUpdate(...args) {
+    return super.componentDidUpdate(...args);
+  }
+}
+
 const TestComponent = () => null;
 
 const defaultProps = {
@@ -24,15 +42,19 @@ function parseFiltersAndSort({
 class PageObject {
   constructor(props) {
     this.wrapper = shallow(
-      <Filterlist
+      <ManualFilterlist
         {...defaultProps}
         {...props}
       />,
     );
   }
 
-  setProps(...args) {
-    this.wrapper.setProps(...args);
+  async setProps(newProps) {
+    const oldProps = this.instance().props;
+
+    this.wrapper.setProps(newProps);
+
+    await this.instance().manualComponentDidUpdate(oldProps);
   }
 
   update() {
@@ -41,6 +63,10 @@ class PageObject {
 
   instance() {
     return this.wrapper.instance();
+  }
+
+  componentDidUpdate() {
+    return this.instance().manualComponentDidUpdate(this.wrapper.props());
   }
 
   getTestComponentNode() {
@@ -53,6 +79,12 @@ class PageObject {
     const listActions = testComponentNode.prop('listActions');
 
     return listActions[actionName];
+  }
+
+  checkListInitied() {
+    const testComponentNode = this.getTestComponentNode();
+
+    return testComponentNode.prop('isListInited');
   }
 
   getListState() {
@@ -77,6 +109,7 @@ function setup(props) {
 test('should provide list state to child', () => {
   const page = setup({});
 
+  expect(page.checkListInitied()).toBe(true);
   expect(page.getListState()).toEqual({
     isMockedState: true,
   });
@@ -138,7 +171,7 @@ test('should init with parsed filters and sort', () => {
   });
 });
 
-test('should call shouldRecount on update', () => {
+test('should call shouldRecount on update', async () => {
   const shouldRecount = jest.fn();
 
   const page = setup({
@@ -161,7 +194,7 @@ test('should call shouldRecount on update', () => {
     },
   });
 
-  page.setProps({
+  await page.setProps({
     filtersAndSortData: {
       filtersRaw: {
         filter1: 'value3',
@@ -209,7 +242,7 @@ test('should call shouldRecount on update', () => {
   });
 });
 
-test('should not call setFiltersAndSorting if shouldRecount returns false', () => {
+test('should not call setFiltersAndSorting if shouldRecount returns false', async () => {
   const page = setup({
     parseFiltersAndSort,
     shouldRecount: () => false,
@@ -230,7 +263,7 @@ test('should not call setFiltersAndSorting if shouldRecount returns false', () =
     },
   });
 
-  page.setProps({
+  await page.setProps({
     filtersAndSortData: {
       filtersRaw: {
         filter1: 'value3',
@@ -252,7 +285,7 @@ test('should not call setFiltersAndSorting if shouldRecount returns false', () =
   expect(filterlist.setFiltersAndSorting.mock.calls.length).toBe(0);
 });
 
-test('should call setFiltersAndSorting if shouldRecount returns true', () => {
+test('should call setFiltersAndSorting if shouldRecount returns true', async () => {
   const page = setup({
     parseFiltersAndSort,
     shouldRecount: () => true,
@@ -273,7 +306,129 @@ test('should call setFiltersAndSorting if shouldRecount returns true', () => {
     },
   });
 
-  page.setProps({
+  await page.setProps({
+    filtersAndSortData: {
+      filtersRaw: {
+        filter1: 'value3',
+      },
+
+      appliedFiltersRaw: {
+        filter1: 'value4',
+      },
+
+      sortRaw: {
+        param: 'test2',
+        asc: false,
+      },
+    },
+  });
+
+  const filterlist = page.getFilterlistInstance();
+
+  expect(filterlist.setFiltersAndSorting.mock.calls.length).toBe(1);
+  expect(filterlist.setFiltersAndSorting.mock.calls[0][0]).toEqual({
+    filters: {
+      filter1: 'value3',
+    },
+
+    appliedFilters: {
+      filter1: 'value4',
+    },
+
+    sort: {
+      param: 'test2',
+      asc: false,
+    },
+  });
+});
+
+test('should set not inited list state for async init', () => {
+  const page = setup({
+    parseFiltersAndSort: Function.prototype,
+    isRecountAsync: true,
+  });
+
+  expect(page.checkListInitied()).toBe(false);
+  expect(page.getListState()).toEqual(null);
+});
+
+test('should init asynchronously with parsed filters and sort', async () => {
+  const page = setup({
+    parseFiltersAndSort: async (data) => {
+      const parsed = await parseFiltersAndSort(data);
+
+      return parsed;
+    },
+
+    filtersAndSortData: {
+      filtersRaw: {
+        filter1: 'value1',
+      },
+
+      appliedFiltersRaw: {
+        filter1: 'value2',
+      },
+
+      sortRaw: {
+        param: 'test',
+        asc: true,
+      },
+    },
+  });
+
+  await page.instance().manualInitFilterlistAsync();
+
+  const options = page.getFilterlistOptions();
+
+  expect(options.filters).toEqual({
+    filter1: 'value1',
+  });
+
+  expect(options.filters).toEqual({
+    filter1: 'value1',
+  });
+
+  expect(options.appliedFilters).toEqual({
+    filter1: 'value2',
+  });
+
+  expect(options.sort).toEqual({
+    param: 'test',
+    asc: true,
+  });
+
+  expect(page.checkListInitied()).toBe(true);
+  expect(page.getListState()).toEqual({
+    isMockedState: true,
+  });
+});
+
+test('should call asynchronously setFiltersAndSorting if shouldRecount returns true', async () => {
+  const page = setup({
+    parseFiltersAndSort,
+    shouldRecount: async (data) => {
+      const parsed = await parseFiltersAndSort(data);
+
+      return parsed;
+    },
+
+    filtersAndSortData: {
+      filtersRaw: {
+        filter1: 'value1',
+      },
+
+      appliedFiltersRaw: {
+        filter1: 'value2',
+      },
+
+      sortRaw: {
+        param: 'test',
+        asc: true,
+      },
+    },
+  });
+
+  await page.setProps({
     filtersAndSortData: {
       filtersRaw: {
         filter1: 'value3',
