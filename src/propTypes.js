@@ -23,7 +23,6 @@ export function createListStatePropTypes(listStateConfig) {
 
   return {
     sort: sortShape.isRequired,
-    initialFilters: PropTypes.object.isRequired,
     filters: filters.isRequired,
     appliedFilters: filters.isRequired,
     loading: PropTypes.bool.isRequired,
