@@ -3,5 +3,6 @@ examples
 src
 .eslintrc
 babel.config.js
+setup-jest.js
 yarn.lock
 *.log
