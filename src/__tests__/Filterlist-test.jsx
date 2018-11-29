@@ -463,3 +463,16 @@ test('should call asynchronously setFiltersAndSorting if shouldRecount returns t
     },
   });
 });
+
+test('should call onChangeLoadParams on "changeLoadParams" event', () => {
+  const onChangeLoadParams = jest.fn();
+
+  const page = setup({
+    onChangeLoadParams,
+  });
+
+  page.getFilterlistInstance().emit('changeLoadParams', 'new list state');
+
+  expect(onChangeLoadParams.mock.calls.length).toBe(1);
+  expect(onChangeLoadParams.mock.calls[0][0]).toBe('new list state');
+});

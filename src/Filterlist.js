@@ -34,6 +34,8 @@ class FilterlistWrapper extends Component {
     isRecountAsync: PropTypes.bool,
 
     children: PropTypes.func.isRequired,
+
+    onChangeLoadParams: PropTypes.func,
   }
 
   static defaultProps = {
@@ -41,6 +43,7 @@ class FilterlistWrapper extends Component {
     filtersAndSortData: null,
     shouldRecount: defaultShouldRecount,
     isRecountAsync: false,
+    onChangeLoadParams: null,
   }
 
   constructor(props) {
@@ -52,6 +55,7 @@ class FilterlistWrapper extends Component {
     } = props;
 
     this.syncListState = this.syncListState.bind(this);
+    this.onChangeLoadParams = this.onChangeLoadParams.bind(this);
 
     const shouldInitAsync = Boolean(parseFiltersAndSort) && isRecountAsync;
 
@@ -89,6 +93,16 @@ class FilterlistWrapper extends Component {
   componentWillUnmount() {
     this.unmounted = true;
     this.filterlist.removeAllListeners(eventTypes.changeListState);
+  }
+
+  onChangeLoadParams(nextListState) {
+    const {
+      onChangeLoadParams,
+    } = this.props;
+
+    if (onChangeLoadParams) {
+      onChangeLoadParams(nextListState);
+    }
   }
 
   getFilterlistOptions() {
@@ -153,6 +167,8 @@ class FilterlistWrapper extends Component {
       res[methodName] = filterlist[methodName].bind(filterlist);
       return res;
     }, {});
+
+    filterlist.addListener(eventTypes.changeLoadParams, this.onChangeLoadParams);
 
     this.listActions = listActions;
 
