@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "React wrapper above @vtaits/filterlist",
   "main": "lib/index.js",
+  "module": "es/index.js",
   "repository": "git@github.com:vtaits/react-filterlist.git",
   "author": "Vadim Taits <taizvadim@gmail.com>",
   "license": "MIT",
