@@ -16,11 +16,6 @@ or
 yarn add @vtaits/filterlist @vtaits/react-filterlist
 ```
 
-This package requiers next polyfills:
-
- - Promise
- - regeneratorRuntime
-
 Examples are [here](https://github.com/vtaits/react-filterlist/tree/master/examples).
 
 ## Simple examples
