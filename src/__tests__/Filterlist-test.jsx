@@ -24,6 +24,7 @@ class ManualFilterlist extends Filterlist {
 const TestComponent = () => null;
 
 const defaultProps = {
+  loadItems: Function.prototype,
   children: (props) => <TestComponent {...props} />,
 };
 
@@ -67,6 +68,10 @@ class PageObject {
 
   componentDidUpdate() {
     return this.instance().manualComponentDidUpdate(this.wrapper.props());
+  }
+
+  callLoadItems(...args) {
+    return this.instance().filterlist.constructorArgs[0].loadItems(...args);
   }
 
   getTestComponentNode() {
@@ -475,4 +480,83 @@ test('should call onChangeLoadParams on "changeLoadParams" event', () => {
 
   expect(onChangeLoadParams.mock.calls.length).toBe(1);
   expect(onChangeLoadParams.mock.calls[0][0]).toBe('new list state');
+});
+
+test('should different loadItems from different props', async () => {
+  const loadItems1 = jest.fn();
+  const loadItems2 = jest.fn();
+
+  const page = setup({
+    loadItems: loadItems1,
+  });
+
+  await page.callLoadItems('test1');
+
+  expect(loadItems1.mock.calls.length).toBe(1);
+  expect(loadItems1.mock.calls[0][0]).toBe('test1');
+
+  await page.setProps({
+    loadItems: loadItems2,
+  });
+
+  await page.callLoadItems('test2');
+
+  expect(loadItems1.mock.calls.length).toBe(1);
+  expect(loadItems2.mock.calls.length).toBe(1);
+  expect(loadItems2.mock.calls[0][0]).toBe('test2');
+});
+
+test('should different loadItems from different props in case with parseFiltersAndSort', async () => {
+  const loadItems1 = jest.fn();
+  const loadItems2 = jest.fn();
+
+  const page = setup({
+    parseFiltersAndSort,
+    filtersAndSortData: {},
+    loadItems: loadItems1,
+  });
+
+  await page.callLoadItems('test1');
+
+  expect(loadItems1.mock.calls.length).toBe(1);
+  expect(loadItems1.mock.calls[0][0]).toBe('test1');
+
+  await page.setProps({
+    loadItems: loadItems2,
+  });
+
+  await page.callLoadItems('test2');
+
+  expect(loadItems1.mock.calls.length).toBe(1);
+  expect(loadItems2.mock.calls.length).toBe(1);
+  expect(loadItems2.mock.calls[0][0]).toBe('test2');
+});
+
+test('should different loadItems from different props in case with parseFiltersAndSort and async init', async () => {
+  const loadItems1 = jest.fn();
+  const loadItems2 = jest.fn();
+
+  const page = setup({
+    parseFiltersAndSort,
+    filtersAndSortData: {},
+    isRecountAsync: true,
+    loadItems: loadItems1,
+  });
+
+  await page.instance().manualInitFilterlistAsync();
+
+  await page.callLoadItems('test1');
+
+  expect(loadItems1.mock.calls.length).toBe(1);
+  expect(loadItems1.mock.calls[0][0]).toBe('test1');
+
+  await page.setProps({
+    loadItems: loadItems2,
+  });
+
+  await page.callLoadItems('test2');
+
+  expect(loadItems1.mock.calls.length).toBe(1);
+  expect(loadItems2.mock.calls.length).toBe(1);
+  expect(loadItems2.mock.calls[0][0]).toBe('test2');
 });

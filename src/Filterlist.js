@@ -27,6 +27,7 @@ export function defaultShouldRecount(data1, data2) {
 
 class FilterlistWrapper extends Component {
   static propTypes = {
+    loadItems: PropTypes.func.isRequired,
     parseFiltersAndSort: PropTypes.func,
     // eslint-disable-next-line react/forbid-prop-types
     filtersAndSortData: PropTypes.any,
@@ -53,9 +54,6 @@ class FilterlistWrapper extends Component {
       parseFiltersAndSort,
       isRecountAsync,
     } = props;
-
-    this.syncListState = this.syncListState.bind(this);
-    this.onChangeLoadParams = this.onChangeLoadParams.bind(this);
 
     const shouldInitAsync = Boolean(parseFiltersAndSort) && isRecountAsync;
 
@@ -95,7 +93,7 @@ class FilterlistWrapper extends Component {
     this.filterlist.removeAllListeners(eventTypes.changeListState);
   }
 
-  onChangeLoadParams(nextListState) {
+  onChangeLoadParams = (nextListState) => {
     const {
       onChangeLoadParams,
     } = this.props;
@@ -117,10 +115,14 @@ class FilterlistWrapper extends Component {
       return {
         ...this.props,
         ...parsedFiltersAndSort,
+        loadItems: this.loadItemsProxy,
       };
     }
 
-    return this.props;
+    return {
+      ...this.props,
+      loadItems: this.loadItemsProxy,
+    };
   }
 
   async getFilterlistOptionsAsync() {
@@ -134,13 +136,22 @@ class FilterlistWrapper extends Component {
     return {
       ...this.props,
       ...parsedFiltersAndSort,
+      loadItems: this.loadItemsProxy,
     };
   }
 
-  initFilterlist() {
-    const options = this.getFilterlistOptions();
+  syncListState = () => {
+    this.setState({
+      listState: this.filterlist.getListState(),
+    });
+  }
 
-    this.createFilterlist(options);
+  loadItemsProxy = (listState) => {
+    const {
+      loadItems,
+    } = this.props;
+
+    return loadItems(listState);
   }
 
   async initFilterlistAsync() {
@@ -158,6 +169,12 @@ class FilterlistWrapper extends Component {
     });
   }
 
+  initFilterlist() {
+    const options = this.getFilterlistOptions();
+
+    this.createFilterlist(options);
+  }
+
   createFilterlist(options) {
     const filterlist = new Filterlist(options);
 
@@ -173,12 +190,6 @@ class FilterlistWrapper extends Component {
     this.listActions = listActions;
 
     this.filterlist = filterlist;
-  }
-
-  syncListState() {
-    this.setState({
-      listState: this.filterlist.getListState(),
-    });
   }
 
   render() {
