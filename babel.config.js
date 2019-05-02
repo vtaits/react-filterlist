@@ -24,6 +24,22 @@ module.exports = {
         '@babel/react',
       ],
     },
+
+    dev: {
+      presets: [
+        [
+          '@babel/env', {
+            modules: false,
+
+            targets: {
+              firefox: '66',
+              chrome: '73',
+            },
+          },
+        ],
+        '@babel/react',
+      ],
+    },
   },
 
   plugins: [

@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 
 import Filterlist, { eventTypes } from '@vtaits/filterlist';
 
+import defaultShouldRecount from './defaultShouldRecount';
+
 export const methodsForChild = [
   'loadItems',
   'setFilterValue',
@@ -20,10 +22,6 @@ export const methodsForChild = [
   'deleteItem',
   'updateItem',
 ];
-
-export function defaultShouldRecount(data1, data2) {
-  return data1 === data2;
-}
 
 class FilterlistWrapper extends Component {
   static propTypes = {

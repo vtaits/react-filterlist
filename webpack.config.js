@@ -1,6 +1,6 @@
 const path = require('path');
 
-const context = path.join(__dirname, 'src');
+const context = path.join(__dirname, 'examples');
 
 module.exports = {
   mode: 'development',
@@ -8,7 +8,7 @@ module.exports = {
   entry: './index.jsx',
   output: {
     path: path.join(__dirname, 'dist'),
-    publicPath: '/dist/',
+    publicPath: '/examples/dist/',
     filename: 'bundle.js',
   },
   module: {
@@ -21,6 +21,9 @@ module.exports = {
     }],
   },
   resolve: {
+    alias: {
+      '@vtaits/react-filterlist': path.join(__dirname, 'src'),
+    },
     modules: [
       'src',
       'node_modules',
