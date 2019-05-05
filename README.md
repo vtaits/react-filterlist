@@ -196,6 +196,84 @@ const WithFilterlist = createFilterlist({
 })(List);
 ```
 
+### With hook
+
+Experimental feature
+
+```
+import React from 'react';
+import { useFilterlist } from '@vtaits/react-filterlist';
+
+const List = () => {
+  const [listState, filterlist] = useFilterlist({
+    loadItems: async () => {
+      const response = await fetch('/cars');
+      const cars = await response.json();
+
+      return {
+        items: cars,
+        additional: {
+          count: cars.length,
+        },
+      };
+    },
+  });
+
+  const {
+    additional,
+    items,
+    loading,
+  } = listState;
+
+  return (
+    <div>
+      <table>
+        <thead>
+          <tr>
+            <th>id</th>
+            <th>brand</th>
+            <th>owner</th>
+            <th>color</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {
+            items.map(({
+              id,
+              brand,
+              owner,
+              color,
+            }) => (
+              <tr key={ id }>
+                <td>{ id }</td>
+                <td>{ brand }</td>
+                <td>{ owner }</td>
+                <td>{ color }</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+
+      {
+        additional && (
+          <h4>
+            Total: { additional.count }
+          </h4>
+        )
+      }
+
+      {
+        loading && (
+          <h3>Loading...</h3>
+        )
+      }
+    </div>
+  );
+};
+```
+
 ## Api
 
 ### Component with render prop
