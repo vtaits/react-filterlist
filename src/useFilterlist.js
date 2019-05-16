@@ -60,7 +60,7 @@ const initFilterlist = (params, loadItems, syncListState, onChangeLoadParams) =>
   return createFilterlist(optionsResult, syncListState, onChangeLoadParams);
 };
 
-const useFilterlist = (params, inputs) => {
+const useFilterlist = (params, inputs = []) => {
   const {
     parseFiltersAndSort = null,
     filtersAndSortData = null,
@@ -147,12 +147,15 @@ const useFilterlist = (params, inputs) => {
     initFilterlistInComponent(true);
 
     return () => {
-      filterlistRef.current.removeAllListeners(eventTypes.changeListState);
-      filterlistRef.current.removeAllListeners(eventTypes.onChangeLoadParams);
+      if (filterlistRef.current) {
+        filterlistRef.current.removeAllListeners(eventTypes.changeListState);
+        filterlistRef.current.removeAllListeners(eventTypes.onChangeLoadParams);
+      }
+
       filterlistRef.current = null;
       isInitInProgressRef.current = false;
     };
-  }, [inputs]);
+  }, inputs);
 
   return [listState, filterlistRef.current];
 };
