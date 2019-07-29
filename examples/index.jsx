@@ -6,6 +6,7 @@ import { render } from 'react-dom';
 import ChangeQuery from './change-query';
 import CreateFilterlist from './create-filterlist';
 import UseFilterlist from './use-filterlist';
+import DeferredInit from './deferred-init';
 
 render(
   <HashRouter>
@@ -23,6 +24,11 @@ render(
       <Route
         component={UseFilterlist}
         path="/use-filterlist/"
+      />
+
+      <Route
+        component={DeferredInit}
+        path="/deferred-init/"
       />
     </Switch>
   </HashRouter>,

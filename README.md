@@ -22,7 +22,7 @@ Examples are [here](https://github.com/vtaits/react-filterlist/tree/master/examp
 
 ### With render prop
 
-```
+```javascript
 import React from 'react';
 import { Filterlist } from '@vtaits/react-filterlist';
 
@@ -124,7 +124,7 @@ const List = () => (
 
 ### With HOC
 
-```
+```javascript
 import React from 'react';
 import { createFilterlist } from '@vtaits/react-filterlist';
 
@@ -200,7 +200,7 @@ const WithFilterlist = createFilterlist({
 
 Experimental feature
 
-```
+```javascript
 import React from 'react';
 import { useFilterlist } from '@vtaits/react-filterlist';
 
@@ -278,7 +278,7 @@ const List = () => {
 
 ### Component with render prop
 
-```
+```javascript
 import { Filterlist } from '@vtaits/react-filterlist';
 
 <Filterlist
@@ -323,7 +323,7 @@ import { Filterlist } from '@vtaits/react-filterlist';
 
 ### HOC
 
-```
+```javascript
 import { createFilterlist } from '@vtaits/react-filterlist';
 
 const ChildComponent = ({
@@ -353,3 +353,21 @@ Similarly with `Component with render prop` but there are next differencies:
 - `onChangeLoadParams` receives props as 2nd arugment
 
 - `filtersAndSortData` always equal props
+
+### hook
+
+```javascript
+import { useFilterlist } from '@vtaits/react-filterlist';
+
+...
+
+const [listState, filterlist] = useFilterlist({
+  ...options,
+  canInit,
+});
+```
+
+Similarly with `Component with render prop` but there are next differencies:
+
+- `listState` and `filterlist` are `null` during async init
+- filterlist will not be initialized until `canInit` is `true`

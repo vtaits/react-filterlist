@@ -67,6 +67,7 @@ const useFilterlist = (params, inputs = []) => {
     shouldRecount = defaultShouldRecount,
     onChangeLoadParams = null,
     loadItems,
+    canInit = true,
   } = params;
 
   const loadItemsRef = useRef();
@@ -123,7 +124,9 @@ const useFilterlist = (params, inputs = []) => {
     }
   };
 
-  initFilterlistInComponent(false);
+  if (canInit) {
+    initFilterlistInComponent(false);
+  }
 
   const [listState, setListStateHandler] = useState(
     filterlistRef.current && filterlistRef.current.getListState(),
@@ -144,6 +147,10 @@ const useFilterlist = (params, inputs = []) => {
   filtersAndSortDataRef.current = filtersAndSortData;
 
   useEffect(() => {
+    if (!canInit) {
+      return Function.prototype;
+    }
+
     initFilterlistInComponent(true);
 
     return () => {
@@ -155,7 +162,7 @@ const useFilterlist = (params, inputs = []) => {
       filterlistRef.current = null;
       isInitInProgressRef.current = false;
     };
-  }, inputs);
+  }, [...inputs, canInit]);
 
   return [listState, filterlistRef.current];
 };
