@@ -1,3 +1,7 @@
+# ⚠️ ATTENTION ⚠️
+
+Development moved to [main repo](https://github.com/vtaits/filterlist/tree/master/packages/react-filterlist)
+
 [![NPM](https://img.shields.io/npm/v/@vtaits/react-filterlist.svg)](https://www.npmjs.com/package/@vtaits/react-filterlist)
 
 # @vtaits/react-filterlist
